@@ -4,11 +4,13 @@ import com.example.onlinebookstoremanagementsystem.Dtos.AddBookDto;
 import com.example.onlinebookstoremanagementsystem.Dtos.BookResponse;
 import com.example.onlinebookstoremanagementsystem.Dtos.UpdateBookDto;
 import com.example.onlinebookstoremanagementsystem.Dtos.UpdateBookResponse;
+import com.example.onlinebookstoremanagementsystem.Entities.Admin;
 import com.example.onlinebookstoremanagementsystem.Entities.Book;
 import com.example.onlinebookstoremanagementsystem.Entities.Customer;
 import com.example.onlinebookstoremanagementsystem.Entities.History;
 import com.example.onlinebookstoremanagementsystem.Enums.CategoryType;
 import com.example.onlinebookstoremanagementsystem.Enums.HistoryType;
+import com.example.onlinebookstoremanagementsystem.Repositories.AdminRepo;
 import com.example.onlinebookstoremanagementsystem.Repositories.BookRepo;
 import com.example.onlinebookstoremanagementsystem.Repositories.CustomerRepo;
 import com.example.onlinebookstoremanagementsystem.Repositories.HistoryRepo;
@@ -29,38 +31,58 @@ public class BookService {
     private HistoryRepo historyRepo;
     @Autowired
     private CustomerRepo customerRepo;
+    @Autowired
+    private AdminRepo adminRepo;
 
 
-    public BookResponse addBook(List<AddBookDto> books) {
-        List<Book> booksToBeSaved = new ArrayList<>();
+    public BookResponse addBook(List<AddBookDto> books,Integer userId) {
+        Admin loggedAdmin=adminRepo.findByAdminUserId(userId);
         BookResponse bookResponse = new BookResponse();
-        for (int i = 0; i < books.size(); i++) {
-            Book book = new Book(books.get(i).getName(), books.get(i).getAuthorName(), books.get(i).getCategoryType());
-            booksToBeSaved.add(book);
+        if(loggedAdmin!=null){
+            List<Book> booksToBeSaved = new ArrayList<>();
+            for (int i = 0; i < books.size(); i++) {
+                Book book = new Book(books.get(i).getName(), books.get(i).getAuthorName(), books.get(i).getCategoryType());
+                booksToBeSaved.add(book);
+            }
+            bookRepo.saveAll(booksToBeSaved);
+            bookResponse.setBooks(booksToBeSaved);
+            bookResponse.setMessage(Constants.SUCCESS_BOOK_STORAGE);
+
         }
-        bookRepo.saveAll(booksToBeSaved);
-        bookResponse.setBooks(booksToBeSaved);
-        bookResponse.setMessage(Constants.SUCCESS_BOOK_STORAGE);
+        else {
+
+            bookResponse.setMessage(Constants.ADMIN_ONLY);
+        }
         return bookResponse;
+
     }
 
-    public UpdateBookResponse updateBook(UpdateBookDto updateBookDto) {
-        Optional<Book> optionalBook = bookRepo.findById(updateBookDto.getId());
+    public UpdateBookResponse updateBook(UpdateBookDto updateBookDto,Integer userId) {
+        Admin loggedAdmin=adminRepo.findByAdminUserId(userId);
         UpdateBookResponse response = new UpdateBookResponse();
-        if (optionalBook.isPresent()) {
-            Book oldBook = optionalBook.get();
-            oldBook.setName(updateBookDto.getName());
-            oldBook.setAuthorName(updateBookDto.getAuthorName());
-            oldBook.setAvailable(updateBookDto.getAvailable());
-            oldBook.setCategoryType(updateBookDto.getCategoryType());
-            bookRepo.save(oldBook);
-            response.setBook(oldBook);
-            response.setMessage(Constants.SUCCESS_BOOK_STORAGE);
-            return response;
-        } else {
-            response.setMessage(Constants.UNAVAILABLE_BOOK);
-            return response;
+        if(loggedAdmin!=null){
+            Optional<Book> optionalBook = bookRepo.findById(updateBookDto.getId());
+            if (optionalBook.isPresent()) {
+                Book oldBook = optionalBook.get();
+                oldBook.setName(updateBookDto.getName());
+                oldBook.setAuthorName(updateBookDto.getAuthorName());
+                oldBook.setAvailable(updateBookDto.getAvailable());
+                oldBook.setCategoryType(updateBookDto.getCategoryType());
+                bookRepo.save(oldBook);
+                response.setBook(oldBook);
+                response.setMessage(Constants.SUCCESS_BOOK_STORAGE);
+                return response;
+            } else {
+                response.setMessage(Constants.UNAVAILABLE_BOOK);
+                return response;
+            }
         }
+        else {
+            response.setMessage(Constants.ADMIN_ONLY);
+            return response;
+
+        }
+
     }
 
     public BookResponse getAllBooks() {
@@ -127,17 +149,24 @@ public class BookService {
         }
     }
 
-    public BookResponse deleteBookById(Integer id) {
+    public BookResponse deleteBookById(Integer id,Integer userId) {
         BookResponse response = new BookResponse();
-        boolean isExist = bookRepo.existsById(id);
-        if (isExist) {
-            bookRepo.deleteById(id);
-            response.setMessage(Constants.Book_DELETED);
-            return response;
-        } else {
-            response.setMessage(Constants.UNAVAILABLE_BOOK);
+        Admin loggedAdmin=adminRepo.findByAdminUserId(userId);
+        if(loggedAdmin!=null){
+            boolean isExist = bookRepo.existsById(id);
+            if (isExist) {
+                bookRepo.deleteById(id);
+                response.setMessage(Constants.Book_DELETED);
+                return response;
+            } else {
+                response.setMessage(Constants.UNAVAILABLE_BOOK);
+                return response;
+            }
+        }else {
+            response.setMessage(Constants.ADMIN_ONLY);
             return response;
         }
+
     }
 
     public BookResponse borrowBook(Integer id, Integer userId) {

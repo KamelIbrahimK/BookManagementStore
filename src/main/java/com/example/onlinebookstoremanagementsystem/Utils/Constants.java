@@ -34,4 +34,6 @@ public class Constants {
     public static final String CUSTOMER_NOT_FOUND="this customer not found";
 
     public static final String RECOMMENDED_BOOKS="We recommend those books for you.";
+
+    public static final String ADMIN_ONLY ="Sorry, this method can be accessed only by admins.";
 }

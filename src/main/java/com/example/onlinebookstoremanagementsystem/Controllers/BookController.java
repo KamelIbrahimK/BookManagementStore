@@ -17,13 +17,13 @@ public class BookController {
     BookService bookService;
 
     @PostMapping(path = "/addNewBook")
-    public BookResponse addBook(@RequestBody List<AddBookDto> addBookDto) {
-        return bookService.addBook(addBookDto);
+    public BookResponse addBook(@RequestBody List<AddBookDto> addBookDto, @RequestHeader("userId") Integer userId) {
+        return bookService.addBook(addBookDto, userId);
     }
 
     @PutMapping(path = "/updateBookDetails")
-    public UpdateBookResponse updateBook(@RequestBody UpdateBookDto updateBookDto) {
-        return bookService.updateBook(updateBookDto);
+    public UpdateBookResponse updateBook(@RequestBody UpdateBookDto updateBookDto, @RequestHeader("userId") Integer userId) {
+        return bookService.updateBook(updateBookDto, userId);
     }
 
     @GetMapping(path = "/findAllBooks")
@@ -32,30 +32,32 @@ public class BookController {
     }
 
     @GetMapping(path = "/findAllBooksByCategory/{category}")
-    public BookResponse findAllBooksByCategory(@PathVariable(value = "category" ) CategoryType categoryType, @RequestHeader( name = "userId", required = false) Integer userId) {
-        return bookService.findAllBooksByCategory(categoryType,userId);
+    public BookResponse findAllBooksByCategory(@PathVariable(value = "category") CategoryType categoryType, @RequestHeader(name = "userId", required = false) Integer userId) {
+        return bookService.findAllBooksByCategory(categoryType, userId);
     }
 
     @GetMapping(path = "/findBookById/{id}")
-    public BookResponse findBookById(@PathVariable("id") Integer id , @RequestHeader("userId") Integer userId) {
-        return bookService.findBookById(id,userId);
+    public BookResponse findBookById(@PathVariable("id") Integer id, @RequestHeader("userId") Integer userId) {
+        return bookService.findBookById(id, userId);
     }
 
     @GetMapping(path = "/deleteBookById/{id}")
-    public BookResponse deleteBookById(@PathVariable("id") Integer id) {
-        return bookService.deleteBookById(id);
+    public BookResponse deleteBookById(@PathVariable("id") Integer id, @RequestHeader("userId") Integer userId) {
+        return bookService.deleteBookById(id, userId);
     }
+
     @PostMapping(path = "/borrowBook/{id}")
-    public BookResponse borrowBook(@PathVariable("id")Integer id , @RequestHeader("userId") Integer userId){
-        return bookService.borrowBook(id,userId);
+    public BookResponse borrowBook(@PathVariable("id") Integer id, @RequestHeader("userId") Integer userId) {
+        return bookService.borrowBook(id, userId);
     }
+
     @PostMapping(path = "/returnBook/{id}")
-    public BookResponse returnBook(@PathVariable("id")Integer id ){
+    public BookResponse returnBook(@PathVariable("id") Integer id) {
         return bookService.returnBook(id);
     }
 
     @PostMapping(path = "/recommendation/{userId}")
-    public BookResponse recommendBooksForUser(@PathVariable("userId") Integer userId){
+    public BookResponse recommendBooksForUser(@PathVariable("userId") Integer userId) {
         return bookService.recommendBooksForUser(userId);
     }
 }
